@@ -9,23 +9,20 @@
 # TRABALHO PRÁTICO I
 
 from database import DatabaseManager
+from dataloader import AmazonDataLoader
 from datetime import datetime
+import os
 
 if __name__ == '__main__':
     start_time = datetime.now()
-    DatabaseManager.create_database(DatabaseManager.POSTGRESQL_DB)
-    # dataset_path = input('INFORME O LOCAL DO ARQUIVO DE METADADOS: ')
-    # products, categories, prod_cats, similars, reviews = AmazonDatasetController().extrair(dataset_path)
+    print('AMAZON PRODUCT CO-PURCHASING DATASET LOADER v1.0\n')
+    
+    resp = input('DESEJA CRIAR O BANCO DE DADOS (S/N)? ')
+    if resp == 'S':
+        DatabaseManager.create_database(DatabaseManager.POSTGRESQL_DB)
 
-    # ProductController.insert_batch(products)
-    # print(f'{len(products)} PRODUCTS INSERTED INTO DATABASE')
-    # CategoryController.insert_batch(categories.values())
-    # print(f'{len(categories.values())} CATEGORIES INSERTED INTO DATABASE')
-    # ProductCategoryController.insert_batch(prod_cats)
-    # print(f'{len(prod_cats)} PRODUCT CATEGORIES INSERTED INTO DATABASE')
-    # SimilarProductsController.insert_batch(similars)
-    # print(f'{len(similars)} SIMILARS PRODUCTS INSERTED INTO DATABASE')
-    # ReviewController.insert_batch(reviews)
-    # print(f'{len(reviews)} PRODUCT REVIEWS INSERTED INTO DATABASE')
+    dataset_path = input('\nINFORME O CAMINHO PARA O DATASET: ')
+    AmazonDataLoader.extract(dataset_path)
+    
     DatabaseManager.close_connection()
     print(f'TIME ELAPSED: {datetime.now() - start_time}')
