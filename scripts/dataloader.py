@@ -47,7 +47,7 @@ class AmazonDataLoader:
 
     @staticmethod
     def __extract_product(data_block):
-        pass
+        
 
     @staticmethod
     def __extract_categories(data_block):
