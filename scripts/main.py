@@ -13,15 +13,17 @@ from dataloader import AmazonDataLoader
 from datetime import datetime
 import os
 
+dataset_path = '/home/ocaradosalgoritmos/Documentos/ufam/periodo_08/icc200-bd/ufam-db-tp1/scripts/amazon-meta.txt'
 if __name__ == '__main__':
     start_time = datetime.now()
     print('AMAZON PRODUCT CO-PURCHASING DATASET LOADER v1.0\n')
     
     resp = input('DESEJA CRIAR O BANCO DE DADOS (S/N)? ')
-    if resp == 'S':
+    if resp.upper() == 'S':
+        #TODO try block here
         DatabaseManager.create_database(DatabaseManager.POSTGRESQL_DB)
 
-    dataset_path = input('\nINFORME O CAMINHO PARA O DATASET: ')
+    # dataset_path = input('\nINFORME O CAMINHO PARA O DATASET: ')
     AmazonDataLoader.extract(dataset_path)
     
     DatabaseManager.close_connection()

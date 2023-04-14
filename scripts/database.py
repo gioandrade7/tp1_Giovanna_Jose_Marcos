@@ -7,10 +7,11 @@
 # ALUNOS: GIOVANNA ANDRADE SANTOS
 # ALUNOS: MARCOS AVNER PIMENTA DE LIMA
 # TRABALHO PRÁTICO I
-from configparser import ConfigParser
-
 import psycopg2
 import os
+
+from configparser import ConfigParser
+from psycopg2 import extras
 
 
 class DatabaseManager:
@@ -31,6 +32,12 @@ class DatabaseManager:
     DATABASE_CONFIG_FILENAME = 'database.ini' # nome do arquivo de configurações da conexão com o sgbd
     DATABASE_CREATE_FILENAME = 'create_db.sql' # nome do arquivo de configurações da conexão com o sgbd
     __connection = None # objeto singleton de conexão com o sgbd
+
+    TABLE_PRODUCT = 'product'
+    TABLE_CATEGORY = 'category'
+    TABLE_PRODUCT_CATEGORY = 'product_category'
+    TABLE_REVIEW = 'review'
+    TABLE_PRODUCT_SIMILAR = 'similar_product'
 
     @classmethod
     def __get_connection_params(cls, sgbd_name: str):
@@ -107,3 +114,27 @@ class DatabaseManager:
             cursor.close()
             conn.commit()
             conn.close()
+
+    @classmethod
+    def insert_one(cls, row, table_name: str):
+        params = ', '.join(['%s' for _ in row])
+        query = f"INSERT INTO {table_name} VALUES ({params})"
+        # recupera a conexão com o sgbd
+        conn = DatabaseManager.get_connection(DatabaseManager.POSTGRESQL_DB)
+        cursor = conn.cursor()
+        # executa o comando SQL
+        cursor.execute(query, row)
+        conn.commit()
+        return cursor.rowcount
+    
+    @classmethod
+    def insert_many(cls, rows, table_name: str):
+        # constroi o comando SQL para inserção
+        sql_query = f'INSERT INTO {table_name} VALUES %s'
+        # recupera a conexão com o sgbd
+        connection = DatabaseManager.get_connection(DatabaseManager.POSTGRESQL_DB)
+        cursor = connection.cursor()
+        # executa o comando SQL
+        extras.execute_values(cursor, sql_query, rows)
+        connection.commit()
+        return cursor.rowcount
