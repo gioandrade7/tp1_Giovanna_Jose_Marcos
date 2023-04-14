@@ -26,21 +26,24 @@ class AmazonDataLoader:
 
             # lista que ira armazenar um conjunto as linhas do arquivo referente a um produto
             data_block = []
-            products = []
-            # categories = set()
+            product_list = []
+            category_dict = dict()
+            prod_cat_list = []
 
             # percorre todo o dataset linha por linha
             for line in dataset_file:
                 # se a linha atual for vazia, significa que chegamos ao final de um bloco
                 if not line.strip():
-                    prod = AmazonDataLoader.__extract_product(data_block)
-                    products.append(prod)
+                    product = AmazonDataLoader.__extract_product(data_block)
+                    product_list.append(product)
 
-                    if not prod[2].startswith('DISCON'):
-                        # cts = AmazonDataLoader.__extract_categories(data_block, prod[6])
-                        # categories.update(cts)
+                    if not product[2].startswith('DISCON'):
+                        cats = AmazonDataLoader.__extract_categories(data_block, product[6])
+                        category_dict.update(cats)
 
                         #TODO vincular as 'categories' com o 'product' e salvar o relacionamento no banco de dados
+                        for category in cats.values():
+                            prod_cat_list.append((product[0], category[0]))
 
                         similars = AmazonDataLoader.__extract_similars(data_block)
                         #TODO salvar os 'similars' no banco de dados[
@@ -54,7 +57,9 @@ class AmazonDataLoader:
                 # se a linha atual contiver metadados ela deve ser adicionada no bloco
                 data_block.append(line) 
             
-            DatabaseManager.insert_many(products, DatabaseManager.TABLE_PRODUCT)
+            DatabaseManager.insert_many(product_list, DatabaseManager.TABLE_PRODUCT)
+            DatabaseManager.insert_many(list(category_dict.values()), DatabaseManager.TABLE_CATEGORY)
+            # DatabaseManager.insert_many(prod_cat_list, DatabaseManager.TABLE_PRODUCT_CATEGORY)
 
 
     @staticmethod
@@ -83,7 +88,7 @@ class AmazonDataLoader:
 
     @staticmethod
     def __extract_categories(data_block, n_categories):
-        categories_set = set()
+        categories_dict = dict()
         
         for i in range(7, 7+n_categories):
             categories_str = data_block[i][:-1].split('|')[1:]
@@ -93,13 +98,13 @@ class AmazonDataLoader:
                 category_data = AmazonDataLoader.__CATEGORY_REGEX_PATTERN.match(category_str).groups()
         
                 if super_ct:
-                    category_data = (int(category_data[1]), category_data[0].upper(), super_ct[0])
+                   categories_dict[int(category_data[1])] = (int(category_data[1]), category_data[0].upper(), int(super_ct[1]))
                 else:
-                    category_data = (int(category_data[1]), category_data[0].upper(), None)
-                categories_set.add(category_data)
+                    categories_dict[int(category_data[1])] = (int(category_data[1]), category_data[0].upper(), None)
+                print(f'\tCATEGORIA EXTRAIDA: {category_data[0].upper()} ({category_data[1]})')
                 super_ct = category_data
         
-        return categories_set
+        return categories_dict
 
     @staticmethod
     def __extract_similars(data_block):
