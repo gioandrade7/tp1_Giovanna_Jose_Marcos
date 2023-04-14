@@ -41,7 +41,6 @@ class AmazonDataLoader:
                         cats = AmazonDataLoader.__extract_categories(data_block, product[6])
                         category_dict.update(cats)
 
-                        #TODO vincular as 'categories' com o 'product' e salvar o relacionamento no banco de dados
                         for category in cats.values():
                             prod_cat_list.append((product[0], category[0]))
 
@@ -58,8 +57,14 @@ class AmazonDataLoader:
                 data_block.append(line) 
             
             DatabaseManager.insert_many(product_list, DatabaseManager.TABLE_PRODUCT)
-            DatabaseManager.insert_many(list(category_dict.values()), DatabaseManager.TABLE_CATEGORY)
-            # DatabaseManager.insert_many(prod_cat_list, DatabaseManager.TABLE_PRODUCT_CATEGORY)
+            print(f'\nTOTAL PRODUTOS ENCONTRADOS: {len(product_list)}')
+            
+            category_list = list(category_dict.values())
+            DatabaseManager.insert_many(category_list, DatabaseManager.TABLE_CATEGORY)
+            print(f'TOTAL CATEGORIAS ENCONTRADOS: {len(category_list)}')
+
+            DatabaseManager.insert_many(prod_cat_list, DatabaseManager.TABLE_PRODUCT_CATEGORY)
+            print(f'TOTAL RELACIONAMENTOS PRODUTO-CATEGORIA ENCONTRADOS: {len(prod_cat_list)}\n')
 
 
     @staticmethod
