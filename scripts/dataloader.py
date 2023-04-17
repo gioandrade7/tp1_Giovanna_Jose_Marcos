@@ -77,7 +77,7 @@ class AmazonDataLoader:
         if m:
             row = m.groups()
             row = (int(row[0]), row[1], 'DISCONTINUED PRODUCT', None, None, None, None, None, None, None)
-            print(f'PRODUTO EXTRAIDO: DISCONTINUED PRODUCT ({row[0]} / {row[1]})')
+            print(f'PRODUTO: DISCONTINUED PRODUCT ({row[0]} - {row[1]})')
             return row
         
         m = AmazonDataLoader.__PRODUCT_REGEX_PATTERN.match(str_block)         
@@ -86,7 +86,7 @@ class AmazonDataLoader:
             row = (int(row[0]), row[1], str(row[2]).upper(), str(row[3]).upper()) + (int(row[4]), int(row[5]), int(row[7]))
             n = AmazonDataLoader.__REVIEWS_RESUME_PATTERN.search(str_block)
             row = row + n.groups()
-            print(f'PRODUTO EXTRAIDO: {row[2]} ({row[0]} / {row[1]})')
+            print(f'PRODUTO: {row[0]} - {row[1]}')
             return row
          
         return None
@@ -106,7 +106,7 @@ class AmazonDataLoader:
                    categories_dict[int(category_data[1])] = (int(category_data[1]), category_data[0].upper(), int(super_ct[1]))
                 else:
                     categories_dict[int(category_data[1])] = (int(category_data[1]), category_data[0].upper(), None)
-                print(f'\tCATEGORIA EXTRAIDA: {category_data[0].upper()} ({category_data[1]})')
+                print(f'\tCATEGORIA: {category_data[1]}')
                 super_ct = category_data
         
         return categories_dict

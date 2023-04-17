@@ -13,6 +13,7 @@ from dataloader import AmazonDataLoader
 from datetime import datetime
 import os
 
+dataset_path = '/home/ocaradosalgoritmos/Documentos/ufam/periodo_08/icc200-bd/ufam-db-tp1/scripts/amazon-meta.txt'
 if __name__ == '__main__':
     print('AMAZON PRODUCT CO-PURCHASING DATASET LOADER v1.0\n')
     
@@ -22,7 +23,7 @@ if __name__ == '__main__':
         DatabaseManager.create_database(DatabaseManager.POSTGRESQL_DB)
 
     start_time = datetime.now()
-    dataset_path = input('\nINFORME O CAMINHO PARA O DATASET: ')
+    # dataset_path = input('\nINFORME O CAMINHO PARA O DATASET: ')
     AmazonDataLoader.extract(dataset_path)
     print(f'TIME ELAPSED: {datetime.now() - start_time}')
 

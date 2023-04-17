@@ -37,11 +37,13 @@ CREATE TABLE product_category (
 );
 
 CREATE TABLE review (
+	review_id SERIAL NOT NULL,
 	product_id INT NOT NULL,
     customer_id VARCHAR(15) NOT NULL,
 	review_date DATE NOT NULL,
 	review_rating INT DEFAULT 0,
 	review_votes INT DEFAULT 0,
 	review_helpful INT DEFAULT 0,
+	PRIMARY KEY (review_id),
 	FOREIGN KEY(product_id) REFERENCES product(product_id) 
 );
