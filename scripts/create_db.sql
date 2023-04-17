@@ -16,8 +16,8 @@ CREATE TABLE similar_product (
     product_asin VARCHAR(10) NOT NULL,
     similar_asin VARCHAR(10) NOT NULL CHECK ( similar_asin <> product_asin),
     PRIMARY KEY(product_asin, similar_asin),
-    FOREIGN KEY(product_asin) REFERENCES product(product_asin),
-    FOREIGN KEY(similar_asin) REFERENCES product(product_asin)
+    FOREIGN KEY(product_asin) REFERENCES product(product_asin)
+    --FOREIGN KEY(similar_asin) REFERENCES product(product_asin)
 );
 
 CREATE TABLE category (
