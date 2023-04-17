@@ -11,7 +11,6 @@
 from database import DatabaseManager
 from dataloader import AmazonDataLoader
 from datetime import datetime
-import os
 
 
 if __name__ == '__main__':
