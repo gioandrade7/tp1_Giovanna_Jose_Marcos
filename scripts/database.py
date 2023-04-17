@@ -128,9 +128,12 @@ class DatabaseManager:
         return cursor.rowcount
     
     @classmethod
-    def insert_many(cls, rows, table_name: str):
+    def insert_many(cls, rows, table_name: str, attrs=None):
         # constroi o comando SQL para inserção
-        sql_query = f'INSERT INTO {table_name} VALUES %s'
+        if not attrs:
+            sql_query = f'INSERT INTO {table_name} VALUES %s'
+        else:
+            sql_query = f'INSERT INTO {table_name} ({attrs}) VALUES %s'
         # recupera a conexão com o sgbd
         connection = DatabaseManager.get_connection(DatabaseManager.POSTGRESQL_DB)
         cursor = connection.cursor()
