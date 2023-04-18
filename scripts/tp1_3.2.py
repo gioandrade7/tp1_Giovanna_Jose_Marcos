@@ -25,7 +25,11 @@ if __name__ == '__main__':
 
     start_time = datetime.now()
     dataset_path = input('\nINFORME O CAMINHO PARA O DATASET: ')
-    AmazonDataLoader.extract(dataset_path)
+    try:
+        AmazonDataLoader.extract(dataset_path)
+    except Exception as err:
+        print(str(err))
+        
     print(f'TIME ELAPSED: {datetime.now() - start_time}')
 
     DatabaseManager.close_connection()
