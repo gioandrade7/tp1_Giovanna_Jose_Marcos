@@ -13,7 +13,7 @@ from typing import Iterable, Any
 
 COMENTARIOS_UTEIS_SQL = "((SELECT product.product_id, product.product_asin, product.product_title, review.customer_id, review.review_date, review.review_rating, review.review_helpful FROM product, review WHERE product.product_id=%s ORDER BY review.review_rating DESC, review.review_helpful DESC LIMIT 5) UNION ALL (SELECT product.product_id, product.product_asin, product.product_title, review.customer_id, review.review_date, review.review_rating, review.review_helpful FROM product, review WHERE product.product_id=%s ORDER BY review.review_rating ASC, review.review_helpful DESC LIMIT 5))"
 
-PRODUTOS_SIMILARES_SQL = "SELECT p.product_id, p.product_asin, p.product_title, p.product_salesrank, sim.product_id, sim.product_asin, sim.product_title, sim.product_salesrank FROM similar_product s INNER JOIN product p ON s.product_asin = p.product_asin INNER JOIN product sim ON s.similar_asin = sim.product_asin WHERE p.product_id=50 AND sim.product_salesrank > p.product_salesrank ORDER BY sim.product_salesrank DESC;"
+PRODUTOS_SIMILARES_SQL = "SELECT p.product_id, p.product_asin, p.product_title, p.product_salesrank, sim.product_id, sim.product_asin, sim.product_title, sim.product_salesrank FROM similar_product s INNER JOIN product p ON s.product_asin = p.product_asin INNER JOIN product sim ON s.similar_asin = sim.product_asin WHERE p.product_id=%s AND sim.product_salesrank > p.product_salesrank ORDER BY sim.product_salesrank DESC;"
 
 EVOLUCAO_AVALIACAO_SQL = "SELECT product.product_title, review_date, round(AVG(review_rating),2) AS avg_rating FROM product INNER JOIN review ON product.product_id=review.product_id WHERE product.product_id=%s GROUP BY product.product_title, review.review_date ORDER BY review_date ASC;"
 
@@ -80,7 +80,7 @@ def query2():
     rows = execute_query(PRODUTOS_SIMILARES_SQL, (id, ))
 
     th = ['P ID', 'P ASIN', 'P TITULO', 'P SALESRANK', 'S ID', 'S ASIN', 'S TITULO', 'S SALESRANK']
-    ts = [6, 13, 35, 15, 6, 13, 35, 15] 
+    ts = [8, 13, 60, 15, 10, 13, 35, 15] 
     print_table_data(th, ts, rows)
 
     
