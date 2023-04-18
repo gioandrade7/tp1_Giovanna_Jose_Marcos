@@ -13,120 +13,18 @@ from typing import Iterable, Any
 
 COMENTARIOS_UTEIS_SQL = "((SELECT product.product_id, product.product_asin, product.product_title, review.customer_id, review.review_date, review.review_rating, review.review_helpful FROM product, review WHERE product.product_id=%s ORDER BY review.review_rating DESC, review.review_helpful DESC LIMIT 5) UNION ALL (SELECT product.product_id, product.product_asin, product.product_title, review.customer_id, review.review_date, review.review_rating, review.review_helpful FROM product, review WHERE product.product_id=%s ORDER BY review.review_rating ASC, review.review_helpful DESC LIMIT 5))"
 
-# (
-# (SELECT product.product_id, product.product_asin, product.product_title, review.customer_id, review.review_date, review.review_rating, review.review_helpful 
-# FROM product, review 
-# WHERE product.product_id=%s 
-# ORDER BY rating DESC, helpful DESC LIMIT 5) 
-
-# UNION ALL 
-
-# (SELECT product.product_id, product.product_asin, product.product_title, review.customer_id, review.review_date, review.review_rating, review.review_helpful FROM product, review 
-# WHERE product.product_id=%s 
-# ORDER BY rating ASC, helpful DESC LIMIT 5)
-# )
-
 PRODUTOS_SIMILARES_SQL = "SELECT p.product_id, p.product_asin, p.product_title, p.product_salesrank, sim.product_id, sim.product_asin, sim.product_title, sim.product_salesrank FROM similar_product s INNER JOIN product p ON s.product_asin = p.product_asin INNER JOIN product sim ON s.similar_asin = sim.product_asin WHERE p.product_id=50 AND sim.product_salesrank > p.product_salesrank ORDER BY sim.product_salesrank DESC;"
-
-# SELECT s.product_asin, p.product_title, p.product_salesrank, s.similar_asin, sim.product_title, sim.product_salesrank
-# FROM similar_product s
-# INNER JOIN product p ON s.product_asin = p.product_asin
-# INNER JOIN product sim ON s.similar_asin = sim.product_asin
-# WHERE p.product_asin =%s
-# AND sim.product_salesrank > p.product_salesrank
-# ORDER BY sim.product_salesrank DESC;
 
 EVOLUCAO_AVALIACAO_SQL = "SELECT product.product_title, review_date, round(AVG(review_rating),2) AS avg_rating FROM product INNER JOIN review ON product.product_id=review.product_id WHERE product.product_id=%s GROUP BY product.product_title, review.review_date ORDER BY review_date ASC;"
 
-# SELECT product.product_title,review_date, round(AVG(review_rating),2) AS avg_rating
-# FROM product INNER JOIN review ON product.product_id=review.product_id
-# WHERE product_id=%s
-# GROUP BY product.product_title, review.review_date 
-# ORDER BY review_date ASC;
-
 LIDERES_VENDAS_POR_CATEGORIA_SQL = "SELECT product_id,product_title,product_salesrank,product_group FROM (SELECT product_id,product_title,product_salesrank,product_group,Rank() OVER (PartitiON BY product_group ORDER BY  product_salesrank DESC ) AS Rank FROM product WHERE product_salesrank > 0) rs WHERE Rank <= 10;"
-
-# SELECT product.product_title, product.product_group, product.product_salesrank
-# FROM product
-# WHERE product.product_salesrank IN (
-#     SELECT product_salesrank
-#     FROM product as p
-#     WHERE p.product_group = product.product_group
-#     ORDER BY p.product_salesrank DESC
-#     LIMIT 10
-# )
 
 PRODUTOS_MELHORES_AVALIACOES_SQL = "SELECT t2.product_id,t2.product_title,t2.product_group,t2.avg_helpful,t2.n_rank FROM (SELECT product.product_id,product.product_title,product.product_group, t1.avg_helpful, ROW_NUMBER() OVER (PARTITION BY product.product_group ORDER BY  t1.avg_helpful DESC) AS n_rank FROM product JOIN (SELECT review.product_id, ROUND(AVG(review.review_helpful),2) AS avg_helpful FROM review WHERE review.review_helpful > 0 GROUP BY  review.product_id) t1 ON t1.product_id=product.product_id) AS t2 WHERE n_rank <= 10;"
 
-# SELECT t2.product_id,
-#         t2.product_title,
-#         t2.product_group,
-#         t2.avg_helpful,
-#         t2.n_rank
-#     FROM 
-#     (SELECT product.product_id,
-#         product.product_title,
-#         product.product_group,
-#         t1.avg_helpful,
-#         ROW_NUMBER()
-#         OVER (PARTITION BY product.product_group
-#     ORDER BY  t1.avg_helpful DESC) AS n_rank
-#         FROM product
-#     JOIN 
-#         (SELECT review.product_id,
-#         ROUND(AVG(review.review_helpful),
-#         2) AS avg_helpful
-#             FROM review
-#             WHERE review.review_helpful > 0
-#             GROUP BY  review.product_id) t1
-#             ON t1.product_id=product.product_id) AS t2
-#         WHERE n_rank <= 10
-
 CATEGORIAS_MAIOR_MEDIA_POR_PRODUTO_SQL = "SELECT category.category_description,ROUND(t_avg.avg,2) FROM category INNER JOIN (SELECT product_category.category_id, AVG(qtd_pos.count) FROM product_category INNER JOIN (SELECT review.product_id, COUNT(*) FROM review WHERE review.review_helpful > 0 GROUP BY  review.product_id) qtd_pos ON qtd_pos.product_id = product_category.product_id GROUP BY  product_category.category_id HAVING AVG(qtd_pos.count) > 0 ORDER BY  avg DESC limit 5) t_avg ON category.category_id = t_avg.category_id;"
-
-# SELECT category.category_description,
-#         ROUND(t_avg.avg,
-#         2)
-#     FROM category
-# INNER JOIN 
-#     (SELECT product_category.category_id,
-#         AVG(qtd_pos.count)
-#         FROM product_category
-#     INNER JOIN 
-#         (SELECT review.product_id,
-#         COUNT(*)
-#             FROM review
-#             WHERE review.review_helpful > 0
-#             GROUP BY  review.product_id) qtd_pos
-#             ON qtd_pos.product_id = product_category.product_id
-#             GROUP BY  product_category.category_id
-#         HAVING AVG(qtd_pos.count) > 0
-#         ORDER BY  avg DESC limit 5) t_avg
-#         ON category.category_id = t_avg.category_id;
 
 CLIENTES_MAIS_COMENTARIOS_SQL = "SELECT customer_id,n_reviews, review_rank, product_group FROM (SELECT customer_id,n_reviews,product_group, ROW_NUMBER() OVER (PARTITION BY t1.product_group ORDER BY  t1.n_reviews DESC) AS review_rank FROM (SELECT customer_id, COUNT(customer_id) AS n_reviews, product_group FROM product INNER JOIN review ON product.product_id=review.product_id GROUP BY  (product_group, customer_id)) AS t1 ORDER BY  t1.product_group ASC, t1.n_reviews DESC) AS t2 WHERE review_rank <= 10;"
 
-# SELECT customer_id,
-#         n_reviews,
-#         review_rank,
-#         product_group
-#     FROM 
-#     (SELECT customer_id,
-#         n_reviews,
-#         product_group,
-#         ROW_NUMBER()
-#         OVER (PARTITION BY t1.product_group
-#     ORDER BY  t1.n_reviews DESC) AS review_rank
-#         FROM 
-#         (SELECT customer_id,
-#         COUNT(customer_id) AS n_reviews,
-#         product_group
-#             FROM product
-#         INNER JOIN review
-#             ON product.product_id=review.product_id
-#             GROUP BY  (product_group, customer_id)) AS t1
-#         ORDER BY  t1.product_group ASC, t1.n_reviews DESC) AS t2
-#         WHERE review_rank <= 10;
 
 def print_table_data(header: Iterable[str], cols_size: Iterable[int], data: Iterable[Iterable[Any]]):
     """Essa função recebe um conjuto de dados (tuplas) e imprime no console num formato tabular
