@@ -44,7 +44,7 @@ EVOLUCAO_AVALIACAO_SQL = "SELECT product.product_title, review_date, round(AVG(r
 # GROUP BY product.product_title, review.review_date 
 # ORDER BY review_date ASC;
 
-LIDERES_VENDAS_POR_CATEGORIA_SQL = "SELECT product.product_title, product.product_group, product.product_salesrank FROM product WHERE product.product_salesrank IN ( SELECT product_salesrank FROM product as p WHERE p.product_group=product.product_group ORDER BY p.product_salesrank DESC LIMIT 10);"
+LIDERES_VENDAS_POR_CATEGORIA_SQL = "SELECT product_id,product_title,product_salesrank,product_group FROM (SELECT product_id,product_title,product_salesrank,product_group,Rank() OVER (PartitiON BY product_group ORDER BY  product_salesrank DESC ) AS Rank FROM product WHERE product_salesrank > 0) rs WHERE Rank <= 10;"
 
 # SELECT product.product_title, product.product_group, product.product_salesrank
 # FROM product
@@ -198,22 +198,32 @@ def query3():
 def query4():
     """Esta função exibe uma tabela no console com os 10 produtos mais vendidos (líderes) de cada grupo de produtos."""
     rows = execute_query(LIDERES_VENDAS_POR_CATEGORIA_SQL)
-    #PRINTAR
+    th = ['ID', 'TITULO', 'SALESRANK', 'GROUP']
+    ts = [15, 120, 15, 20] 
+    print_table_data(th, ts, rows)
     
 def query5():
     """Esta função exibe uma tabela no console com os 10 produtos com a maior média de avaliações úteis positivas por grupo."""
     rows = execute_query(PRODUTOS_MELHORES_AVALIACOES_SQL)
-    #PRINTAR
+    
+    th = ['ID', 'TITULO', 'GROUP', 'AVG', 'RANK']
+    ts = [15, 120, 15, 10, 5] 
+    print_table_data(th, ts, rows)
+
     
 def query6():
     """Esta função exibe uma tabela no console com as 5 categorias mais bem avaliadas."""
     rows = execute_query(CATEGORIAS_MAIOR_MEDIA_POR_PRODUTO_SQL)
-    #PRINTAR
+    th = ['DESCRICAO', 'AVG HELPFUL REVIEWS']
+    ts = [60, 20] 
+    print_table_data(th, ts, rows)
     
 def query7():
     """Esta função exibe uma tabela no console com os 10 clientes que mais fizeram comentários por grupo de produto."""
     rows = execute_query(CLIENTES_MAIS_COMENTARIOS_SQL)
-    #PRINTAR
+    th = ['CUSTOMER ID', 'N REVIEWS', 'RANK', 'GROUP']
+    ts = [16, 10, 7, 20] 
+    print_table_data(th, ts, rows)
 
 def sair():
     print("SAINDO...\n")
