@@ -13,7 +13,7 @@ from database import DatabaseManager
 class AmazonDataLoader:
 
     __PRODUCT_REGEX_PATTERN = re.compile(r"^Id:\s(\d+)\sASIN:\s([\w\d]+)\stitle:\s(.+)\sgroup:\s([\w\s]+)\ssalesrank:\s-?(\d+)\ssimilar:\s(\d+)([\s\w\d]*)\scategories:\s(\d+)")
-    __REVIEWS_RESUME_PATTERN = re.compile(r"total:\s(\d+)\sdownloaded:\s(\d+)\savg\srating:\s(\d+\.\d+|\d+)")
+    __REVIEWS_RESUME_PATTERN = re.compile(r"^reviews:\stotal:\s(\d+)\s{1,2}downloaded:\s(\d+)\s{1,2}avg\srating:\s(\d+\.\d+|\d+)\s")
     __PRODUCT_DISCONTINUED_REGEX_PATTERN = re.compile(r"^Id:\s(\d+)\sASIN:\s([\w\d]+)\sdiscontinued\sproduct")
     __CATEGORY_REGEX_PATTERN = re.compile(r'(.*)\[(\d+)\]')
     __REVIEW_REGEX_PATTERN = re.compile(r'^(\d{4}-\d{1,2}-\d{1,2})\s{1,2}cutomer:\s{1,6}([\w\d]+)\s{2}rating:\s(\d+)\s{2}votes:\s{1,3}(\d+)\s{2}helpful:\s{1,3}(\d+)\s')
@@ -62,7 +62,7 @@ class AmazonDataLoader:
                 data_block.append(line) 
             
             print('\nSALVANDO PRODUTOS NO BANCO DE DADOS...')
-            DatabaseManager.insert_many(product_list, DatabaseManager.TABLE_PRODUCT)
+            DatabaseManager.insert_many(product_list, DatabaseManager.TABLE_PRODUCT, 'product_id,product_asin,product_title,product_group,product_salesrank,product_n_similars,product_n_categories,product_reviews_total,product_reviews_downloaded,product_reviews_avg')
             print(f'\tTOTAL REGISTROS: {len(product_list)}')
             
             print('SALVANDO CATEGORIAS NO BANCO DE DADOS...')
@@ -88,21 +88,39 @@ class AmazonDataLoader:
         str_block = ''.join(data_block)
         str_block = re.sub('\n', ' ', str_block)
         str_block = re.sub(' +', ' ', str_block)
+
+        p = [None, None, None, None, None, None, None, None, None, None]
+        
         m = AmazonDataLoader.__PRODUCT_DISCONTINUED_REGEX_PATTERN.match(str_block)
         if m:
             row = m.groups()
-            row = (int(row[0]), row[1], 'DISCONTINUED PRODUCT', None, None, None, None, None, None, None)
-            print(f'PRODUTO: {row[0]} (DISCONTINUED PRODUCT)')
-            return row
+            p[0] = int(row[0])
+            p[1] = row[1]
+            p[2] = 'DISCONTINUED PRODUCT'
+            print(f'PRODUTO: {p[0]} (DISCONTINUED PRODUCT)')
+            return tuple(p)
         
         m = AmazonDataLoader.__PRODUCT_REGEX_PATTERN.match(str_block)         
         if m:
             row = m.groups()
-            row = (int(row[0]), row[1], str(row[2]).upper(), str(row[3]).upper()) + (int(row[4]), int(row[5]), int(row[7]))
-            n = AmazonDataLoader.__REVIEWS_RESUME_PATTERN.search(str_block)
-            row = row + n.groups()
-            print(f'PRODUTO: {row[0]}')
-            return row
+            p[0] = int(row[0])
+            p[1] = row[1]
+            p[2] = str(row[2]).upper()
+            p[3] = str(row[3]).upper()
+            p[4] = int(row[4])
+            p[5] = int(row[5])
+            p[6] = int(row[7])
+            
+            for line in [l[2:] for l in data_block[6:]]:
+                if line.startswith('reviews:'):
+                    m = AmazonDataLoader.__REVIEWS_RESUME_PATTERN.match(line)
+                    row = m.groups()
+                    p[-1] = float(row[-1])
+                    p[-2] = int(row[-2])
+                    p[-3] = int(row[-3])
+                    break
+            print(f'PRODUTO: {p[0]}')
+            return tuple(p)
          
         return None
 

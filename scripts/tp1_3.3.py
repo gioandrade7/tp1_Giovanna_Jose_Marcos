@@ -11,7 +11,7 @@
 from database import DatabaseManager
 from typing import Iterable, Any
 
-COMENTARIOS_UTEIS_SQL = "((SELECT product.product_id, product.product_asin, product.product_title, review.customer_id, review.review_date, review.review_rating, review.review_helpful FROM product, review WHERE product.product_id=%s ORDER BY rating DESC, helpful DESC LIMIT 5) UNION ALL (SELECT product.product_id, product.product_asin, product.product_title, review.customer_id, review.review_date, review.review_rating, review.review_helpful FROM product, review WHERE product.product_id=%s ORDER BY rating ASC, helpful DESC LIMIT 5))"
+COMENTARIOS_UTEIS_SQL = "((SELECT product.product_id, product.product_asin, product.product_title, review.customer_id, review.review_date, review.review_rating, review.review_helpful FROM product, review WHERE product.product_id=%s ORDER BY review.review_rating DESC, review.review_helpful DESC LIMIT 5) UNION ALL (SELECT product.product_id, product.product_asin, product.product_title, review.customer_id, review.review_date, review.review_rating, review.review_helpful FROM product, review WHERE product.product_id=%s ORDER BY review.review_rating ASC, review.review_helpful DESC LIMIT 5))"
 
 # (
 # (SELECT product.product_id, product.product_asin, product.product_title, review.customer_id, review.review_date, review.review_rating, review.review_helpful 
@@ -26,7 +26,7 @@ COMENTARIOS_UTEIS_SQL = "((SELECT product.product_id, product.product_asin, prod
 # ORDER BY rating ASC, helpful DESC LIMIT 5)
 # )
 
-PRODUTOS_SIMILARES_SQL = "SELECT s.product_asin, p.product_title, p.product_salesrank, s.similar_asin, sim.product_title, sim.product_salesrank FROM similar_product s INNER JOIN product p ON s.product_asin = p.product_asin INNER JOIN product sim ON s.similar_asin = sim.product_asin WHERE p.product_asin =%s AND sim.product_salesrank > p.product_salesrank ORDER BY sim.product_salesrank DESC;"
+PRODUTOS_SIMILARES_SQL = "SELECT p.product_id, p.product_asin, p.product_title, p.product_salesrank, sim.product_id, sim.product_asin, sim.product_title, sim.product_salesrank FROM similar_product s INNER JOIN product p ON s.product_asin = p.product_asin INNER JOIN product sim ON s.similar_asin = sim.product_asin WHERE p.product_id=50 AND sim.product_salesrank > p.product_salesrank ORDER BY sim.product_salesrank DESC;"
 
 # SELECT s.product_asin, p.product_title, p.product_salesrank, s.similar_asin, sim.product_title, sim.product_salesrank
 # FROM similar_product s
@@ -36,7 +36,7 @@ PRODUTOS_SIMILARES_SQL = "SELECT s.product_asin, p.product_title, p.product_sale
 # AND sim.product_salesrank > p.product_salesrank
 # ORDER BY sim.product_salesrank DESC;
 
-EVOLUCAO_AVALIACAO_SQL = "SELECT product.product_title,review_date, round(AVG(review_rating),2) AS avg_rating FROM product INNER JOIN review ON product.product_id=review.product_id WHERE product_id=%s GROUP BY product.product_title, review.review_date ORDER BY review_date ASC;"
+EVOLUCAO_AVALIACAO_SQL = "SELECT product.product_title, review_date, round(AVG(review_rating),2) AS avg_rating FROM product INNER JOIN review ON product.product_id=review.product_id WHERE product.product_id=%s GROUP BY product.product_title, review.review_date ORDER BY review_date ASC;"
 
 # SELECT product.product_title,review_date, round(AVG(review_rating),2) AS avg_rating
 # FROM product INNER JOIN review ON product.product_id=review.product_id
@@ -136,16 +136,17 @@ def print_table_data(header: Iterable[str], cols_size: Iterable[int], data: Iter
         data (Iterable[Iterable[Any]]): Conjunto de dados num formato tabular a serem impressos no console.
     """
     # imprime o cabeçalho (nome das colunas) da tabela
-    print('-' * sum(cols_size))
+    margin = 5
+    print('-' * (sum(cols_size)+margin))
     for col_name, col_size in zip(header, cols_size):
         print(f'{col_name.ljust(col_size)}', end='')
-    print('\n' + '-' * sum(cols_size))
+    print('\n' + '-' * (sum(cols_size)+margin))
     # imprime o conjunto de dados
     for row in data:
         for value, col_size in zip(row, cols_size):
             print(f'{str(value).ljust(col_size)}', end='')
         print('')
-    print('-' * sum(cols_size))
+    print('-' * (sum(cols_size)+margin))
     print('')
 
 def execute_query(sql_query: str, params: Iterable = None) -> Iterable: # type: ignore
@@ -169,19 +170,30 @@ def query1():
     """Esta função exibe os 5 comentários mais úteis e com maior avaliação, e também os 5 mais úteis com menor avaliação, de um dado produto."""
     id = input('POR GENTILEZA, INFORME O ID DO PRODUTO: ')
     rows = execute_query(COMENTARIOS_UTEIS_SQL, (id, id))
-    #PRINTAR
+
+    th = ['ID PRODUTO', 'ASIN', 'TITULO', 'ID CLIENTE', 'DATA', 'RATING', 'HELPFUL']
+    ts = [12, 15, 60, 16, 12, 5] 
+    print_table_data(th, ts, rows)
+
     
 def query2():
     """Esta função exibe os produtos similares com maiores vendas do que ele"""
     id = input('POR GENTILEZA, INFORME O ID DO PRODUTO: ')
     rows = execute_query(PRODUTOS_SIMILARES_SQL, (id, ))
-    #PRINTAR
+
+    th = ['P ID', 'P ASIN', 'P TITULO', 'P SALESRANK', 'S ID', 'S ASIN', 'S TITULO', 'S SALESRANK']
+    ts = [6, 13, 35, 15, 6, 13, 35, 15] 
+    print_table_data(th, ts, rows)
+
     
 def query3():
     """Esta função exibe a evolução diária das médias de avaliação de um produto."""
     id = input('POR GENTILEZA, INFORME O ID DO PRODUTO: ')
     rows = execute_query(EVOLUCAO_AVALIACAO_SQL, (id, ))
-    #PRINTAR
+
+    th = ['TITULO', 'DATA', 'AV MEDIA']
+    ts = [40, 15, 8] 
+    print_table_data(th, ts, rows)
     
 def query4():
     """Esta função exibe uma tabela no console com os 10 produtos mais vendidos (líderes) de cada grupo de produtos."""
@@ -204,7 +216,7 @@ def query7():
     #PRINTAR
 
 def sair():
-    print("Saindo...\n")
+    print("SAINDO...\n")
 
 def switch_case(op):
     switcher = {
